@@ -5,6 +5,8 @@
 #include <random>
 #include <algorithm>
 
+// Simulations use GBM
+
 double simulateEuropean(const Option& opt, OptionsSide side, int steps, int simulations, double price, double time){
     std::random_device rd{};
     std::mt19937 gen{rd()};
@@ -12,6 +14,8 @@ double simulateEuropean(const Option& opt, OptionsSide side, int steps, int simu
 
     double dt = time/steps;
     std::vector<std::vector<double>> pricePaths;
+
+    // Every simulation add options price to this and then divide by nr of simulations to get avg price
     double totalOptionsPrice = 0.0; 
 
     for(int i=0; i<simulations; i++){
@@ -43,6 +47,7 @@ double simulateAmerican(const Option& opt, OptionsSide side,  int steps, int sim
 
     double dt = opt.getTimeTillExpiration()/steps;
     
+    //If our dividend is after expiration date then we can never capture it so just simulate european
     if(opt.getTimeTillDividend()>opt.getTimeTillExpiration()){return simulateEuropean(opt, side, steps, simulations, opt.getUnderlyingPrice(), opt.getTimeTillExpiration());}
 
 
@@ -58,6 +63,7 @@ double simulateAmerican(const Option& opt, OptionsSide side,  int steps, int sim
         }
         pricePaths.push_back(v);
 
+        // When we hit a dividend we must check if we should exercise early for both puts and calls
         if(side == OptionsSide::Put){
 
             double currPrice = calculateEuropeanPut(opt, S0, opt.getTimeTillExpiration()-opt.getTimeTillDividend());
@@ -71,6 +77,7 @@ double simulateAmerican(const Option& opt, OptionsSide side,  int steps, int sim
         }
 
         else{
+            // Same for Call
             double currPrice = calculateEuropeanCall(opt, S0, opt.getTimeTillExpiration()-opt.getTimeTillDividend());
             double timevalue = (currPrice - std::max(0.0, S0-opt.getStrikePrice()));
 
@@ -98,6 +105,8 @@ double simulateAsian(const Option& opt, OptionsSide side, int steps, int simulat
     double totalOptionsPrice = 0.0;
 
     for(int i=0; i<simulations; i++){
+
+        // Every simulation keep track of udnerlying price os we can calculate avg price afterwards, akin to totalOptionsPrice
         double totalUnderlyingPrice = 0.0;
         double avgPrice = 0.0; 
         std::vector<double> v;

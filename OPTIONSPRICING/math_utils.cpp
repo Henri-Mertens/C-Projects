@@ -4,6 +4,7 @@
 #define PI 3.14159265358979323846
 
 
+// Helper functions
 double calculateD1(Option opt){
     return (std::log(opt.getUnderlyingPrice() / opt.getStrikePrice()) + (opt.getB() + opt.getVolatility() * opt.getVolatility() / 2) * opt.getTimeTillExpiration()) / (opt.getVolatility() * std::sqrt(opt.getTimeTillExpiration()));
 }

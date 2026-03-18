@@ -26,6 +26,8 @@ double calculateEuropeanPut(const Option& opt) {
     return (opt.getStrikePrice()*std::exp(-opt.getRiskFreeRate()*opt.getTimeTillExpiration())*normalCDF(-d2)) - (opt.getUnderlyingPrice()*(std::exp((opt.getB()-opt.getRiskFreeRate())*opt.getTimeTillExpiration()))*normalCDF(-d1));
 }
 
+
+// Find the critcal price where an investor is indifferent between exercising and holding an option (on the day before dividend)
 double findCriticalPriceSStarCall(const Option& opt) {
     double low = opt.getStrikePrice();
     double high = opt.getStrikePrice() * 5.0; 
@@ -34,6 +36,8 @@ double findCriticalPriceSStarCall(const Option& opt) {
 
     while ((high - low) > tol) {
         double mid = low + (high - low) / 2.0;
+
+        // Indifferent when hold value== exercise value
         double holdValue = calculateEuropeanCall(opt, mid - opt.getDividend(), T_diff);
         double exerciseValue = mid - opt.getStrikePrice();
         
@@ -46,10 +50,15 @@ double findCriticalPriceSStarCall(const Option& opt) {
     return low + (high - low) / 2.0;
 }
 
+
+// Roll geske whaley
 double calculateAmericanCall(const Option& opt){
     double T_diff = opt.getTimeTillExpiration() - opt.getTimeTillDividend();
-    //should we exercise?
-    //only if dividend 
+
+    // First check if exercise should even be considered
+    // If earned dividend is less than interest you missed out on by keeping K invested, do not exercise
+    // S - K > (S - D) - K e^{-r(T-t_1)}
+    // immidiate pay off when exercising early > atleast the intrinsic value of the call
     if (opt.getDividend() <= opt.getStrikePrice() * (1.0 - std::exp(-opt.getRiskFreeRate() * T_diff))){
         double S_prime = opt.getUnderlyingPrice() - opt.getDividend() * std::exp(-opt.getRiskFreeRate() * opt.getTimeTillDividend());
         return calculateEuropeanCall(opt, S_prime, opt.getTimeTillExpiration());

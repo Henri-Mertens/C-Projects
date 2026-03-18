@@ -1,10 +1,6 @@
 #pragma once
 #include "../option.h"
 
-// Delta, Gamma, Vega, Theta, Rho
-// TODO: Implement Greeks
-
-
 double calcebrt(Option opt);
 double calcert(Option opt);
 double delta(Option opt);
