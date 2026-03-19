@@ -101,9 +101,61 @@ int main(){
     std::cout << std::format("Vega Eur Call OTM:       {:.4f}  (~0.097)\n",  vega(eurCallOTM));
 
     // rho: stock options use analytic formula, futures (b=0) falls back to MC
-    std::cout << std::format("Rho Eur Call ATM:        {:.4f}  (~0.532)\n",  rho(eurCall));
-    std::cout << std::format("Rho Eur Put ATM:         {:.4f}  (~-0.419)\n", rho(eurPut));
-    std::cout << std::format("Rho Futures/Fut Call:    {:.4f}  (~-0.078)\n", rho(futuresFutCall));
+    std::cout << std::format("Rho Eur Call ATM:        {:.4f}  (~0.532)\n",  rho(eurCall, 252, 100000));
+    std::cout << std::format("Rho Eur Put ATM:         {:.4f}  (~-0.419)\n", rho(eurPut, 252, 100000));
+    std::cout << std::format("Rho Futures/Fut Call:    {:.4f}  (~-0.078)\n", rho(futuresFutCall, 252, 100000));
+
+
+    // ---- simulated greeks (MC finite-difference bumping, 252 steps, 100k paths) ----
+    std::cout << "\n--- Simulated Greeks (Monte Carlo) ---\n";
+
+    // --- simulated delta ---
+    std::cout << std::format("Sim Delta Eur Call ATM:  {:.4f}  (analytic ~{:.4f})\n",
+        simulateDelta(eurCall,    252, 100000), delta(eurCall));
+    std::cout << std::format("Sim Delta Eur Put ATM:   {:.4f}  (analytic ~{:.4f})\n",
+        simulateDelta(eurPut,     252, 100000), delta(eurPut));
+    std::cout << std::format("Sim Delta Eur Call ITM:  {:.4f}  (analytic ~{:.4f})\n",
+        simulateDelta(eurCallITM, 252, 100000), delta(eurCallITM));
+    std::cout << std::format("Sim Delta Eur Call OTM:  {:.4f}  (analytic ~{:.4f})\n",
+        simulateDelta(eurCallOTM, 252, 100000), delta(eurCallOTM));
+
+    // --- simulated gamma ---
+    std::cout << std::format("Sim Gamma Eur Call ATM:  {:.4f}  (analytic ~{:.4f})\n",
+        simulateGamma(eurCall,    252, 100000), gamma(eurCall));
+    std::cout << std::format("Sim Gamma Eur Put ATM:   {:.4f}  (analytic ~{:.4f})\n",
+        simulateGamma(eurPut,     252, 100000), gamma(eurPut));
+    std::cout << std::format("Sim Gamma Eur Call ITM:  {:.4f}  (analytic ~{:.4f})\n",
+        simulateGamma(eurCallITM, 252, 100000), gamma(eurCallITM));
+
+    // --- simulated theta ---
+    std::cout << std::format("Sim Theta Eur Call ATM:  {:.4f}  (analytic ~{:.4f})\n",
+        simulateTheta(eurCall,    252, 100000), theta(eurCall));
+    std::cout << std::format("Sim Theta Eur Put ATM:   {:.4f}  (analytic ~{:.4f})\n",
+        simulateTheta(eurPut,     252, 100000), theta(eurPut));
+
+    // --- simulated vega ---
+    std::cout << std::format("Sim Vega Eur Call ATM:   {:.4f}  (analytic ~{:.4f})\n",
+        simulateVega(eurCall,     252, 100000), vega(eurCall));
+    std::cout << std::format("Sim Vega Eur Put ATM:    {:.4f}  (analytic ~{:.4f})\n",
+        simulateVega(eurPut,      252, 100000), vega(eurPut));
+    std::cout << std::format("Sim Vega Eur Call OTM:   {:.4f}  (analytic ~{:.4f})\n",
+        simulateVega(eurCallOTM,  252, 100000), vega(eurCallOTM));
+
+    // --- simulated rho ---
+    std::cout << std::format("Sim Rho Eur Call ATM:    {:.4f}  (analytic ~{:.4f})\n",
+        simulateRho(eurCall,          252, 100000), rho(eurCall, 252, 100000));
+    std::cout << std::format("Sim Rho Eur Put ATM:     {:.4f}  (analytic ~{:.4f})\n",
+        simulateRho(eurPut,           252, 100000), rho(eurPut, 252, 100000));
+    std::cout << std::format("Sim Rho Futures/Fut Call:{:.4f}  (analytic ~{:.4f})\n",
+        simulateRho(futuresFutCall,   252, 100000), rho(futuresFutCall, 252, 100000));
+
+    // --- simulated phi (forex only) ---
+    Option fxPut(252, 0.08, 0.05, 1.10, 1.10, 0.03,
+                 OptionsType::European, OptionsSide::Put, UnderLyingType::Forex);
+    std::cout << std::format("Sim Phi Forex Call ATM:  {:.4f}  (analytic ~{:.4f})\n",
+        simulatePhi(fxCall, 252, 100000), phi(fxCall));
+    std::cout << std::format("Sim Phi Forex Put ATM:   {:.4f}  (analytic ~{:.4f})\n",
+        simulatePhi(fxPut,  252, 100000), phi(fxPut));
 
     return 0;
 }
